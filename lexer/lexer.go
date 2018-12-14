@@ -9,33 +9,10 @@ type Lexer struct {
 	ch byte
 }
 
-
 func New(input string) *Lexer{
 	l := &Lexer{input: input}
 	l.readChar()
 	return l
-}
-
-func newToken(tokenType token.TokenType, c byte) token.Token{
-	return token.Token{
-		Type:    tokenType,
-		Literal: string(c),
-	}
-}
-
-func isLetter(ch byte) bool {
-	return 'a' <= ch && ch <= 'z'  || 'A' <= ch && ch <= 'Z' || ch == '_'
-}
-
-// 如果要考虑中文的化
-func (l *Lexer) readChar() {
-	if l.readPosition >= len(l.input) {
-		l.ch = 0
-	} else {
-		l.ch = l.input[l.readPosition]
-	}
-	l.position = l.readPosition
-	l.readPosition += 1
 }
 
 func (l *Lexer) NextToken() token.Token {
@@ -44,8 +21,6 @@ func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
 
 	switch l.ch {
-	case '=':
-		tok = newToken(token.ASSIGN, l.ch)
 	case ';':
 		tok = newToken(token.SEMICOLON, l.ch)
 	case '(':
@@ -60,6 +35,27 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBRACE, l.ch)
 	case '}':
 		tok = newToken(token.RBRACE, l.ch)
+	case '=':
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = token.Token{Type: token.EQ, Literal: literal}
+		} else {
+			tok = newToken(token.ASSIGN, l.ch)
+		}
+	case '-':
+		tok = newToken(token.MINUS, l.ch)
+	case '!':
+		tok = newToken(token.BANG, l.ch)
+	case '/':
+		tok = newToken(token.SLASH, l.ch)
+	case '*':
+		tok = newToken(token.ASTERISK, l.ch)
+	case '<':
+		tok = newToken(token.LT, l.ch)
+	case '>':
+		tok = newToken(token.GT, l.ch)
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -79,6 +75,30 @@ func (l *Lexer) NextToken() token.Token {
 
 	l.readChar()
 	return tok
+}
+
+
+func isLetter(ch byte) bool {
+	return 'a' <= ch && ch <= 'z'  || 'A' <= ch && ch <= 'Z' || ch == '_'
+}
+
+// 如果要考虑中文的话
+func (l *Lexer) readChar() {
+	if l.readPosition >= len(l.input) {
+		l.ch = 0
+	} else {
+		l.ch = l.input[l.readPosition]
+	}
+	l.position = l.readPosition
+	l.readPosition += 1
+}
+
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
 }
 
 func (l *Lexer) readIdentifier() string {
@@ -105,4 +125,12 @@ func (l *Lexer) readNumber() string {
 }
 func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
+}
+
+
+func newToken(tokenType token.TokenType, c byte) token.Token{
+	return token.Token{
+		Type:    tokenType,
+		Literal: string(c),
+	}
 }
