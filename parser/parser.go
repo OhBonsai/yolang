@@ -153,6 +153,8 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 }
 
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	defer unTrace(trace("parseExpressionStatement"))
+
 	stmt := &ast.ExpressionStatement{Token: p.curToken}
 	stmt.Expression = p.parseExpression(LOWEST)
 
@@ -169,6 +171,8 @@ func (p *Parser) parseIdentifier() ast.Expression {
 }
 
 func (p *Parser) parseIntegerLiteral() ast.Expression {
+	defer unTrace(trace("parseIntegerLiteral"))
+
 	lit := &ast.IntegerLiteral{Token: p.curToken}
 
 	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
@@ -184,6 +188,8 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 
 
 func (p *Parser)  parsePrefixExpression() ast.Expression {
+	defer unTrace(trace("parsePrefixExpression"))
+
 	expression := &ast.PrefixExpression{
 		Token:p.curToken,
 		Operator:p.curToken.Literal,
@@ -200,6 +206,8 @@ func (p *Parser) noPrefixParseFnError(t token.TokenType) {
 
 
 func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
+	defer unTrace(trace("parseInfixExpression"))
+
 	expression := &ast.InfixExpression{
 		Token: p.curToken,
 		Operator: p.curToken.Literal,
@@ -208,6 +216,13 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 
 	precedence := p.curPrecedence()
 	p.nextToken()
+
+	// // 通过降低优先级，来达到右结合
+	//if expression.Operator == "+" {
+	//	expression.Right = p.parseExpression(precedence - 1)
+	//} else {
+	//	expression.Right = p.parseExpression(precedence)
+	//}
 	expression.Right = p.parseExpression(precedence)
 
 	return expression
@@ -215,6 +230,8 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 
 
 func (p *Parser) parseExpression(precedence int) ast.Expression {
+	defer unTrace(trace("parseExpression"))
+
 	prefix := p.prefixParseFns[p.curToken.Type]
 	if prefix == nil {
 		p.noPrefixParseFnError(p.curToken.Type)
