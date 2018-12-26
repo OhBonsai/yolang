@@ -7,12 +7,16 @@ import (
 	"github.com/OhBonsai/yolang/lexer"
 	"github.com/OhBonsai/yolang/parser"
 	"github.com/OhBonsai/yolang/evaluator"
+	"github.com/OhBonsai/yolang/object"
 )
 
 const PROMPT = ">>"
 
 
-func Start(in io.Reader, out io.Writer) { scanner := bufio.NewScanner(in)
+func Start(in io.Reader, out io.Writer) {
+	scanner := bufio.NewScanner(in)
+	env := object.NewEnvironment()
+
 	for {
 		fmt.Printf(PROMPT)
 		scanned := scanner.Scan()
@@ -29,7 +33,7 @@ func Start(in io.Reader, out io.Writer) { scanner := bufio.NewScanner(in)
 			continue
 		}
 
-		evaluated := evaluator.Eval(program)
+		evaluated := evaluator.Eval(program, env)
 		if evaluated != nil {
 			io.WriteString(out, evaluated.Inspect())
 			io.WriteString(out, "\n")
